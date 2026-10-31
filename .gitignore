@@ -1,0 +1,27 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Generated telemetry and reports may contain local machine information
+outputs/
+SURVIVAL_Test_Records/
+guard-check-*/
+*.log
+
+# Local settings and credentials
+.env
+.env.*
+!.env.example
+credentials*
+secrets*
+*.pem
+*.key
+*.pfx
+*.p12
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
