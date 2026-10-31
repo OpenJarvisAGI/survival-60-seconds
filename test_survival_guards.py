@@ -133,4 +133,38 @@ with tempfile.TemporaryDirectory(dir=source.parent, prefix='guard-check-') as tm
     assert 'UNSCORED' in (out / 'summary.txt').read_text(encoding='utf-8')
 checks.append('Fully stubbed interrupted run saves FAIL, incomplete duration and explicit user-abort reason')
 checks.append('Failed run produces unscored JSON, text and HTML with no numeric score')
+
+boot_spec = importlib.util.spec_from_file_location('bootstrap_checked', source.with_name('bootstrap_uv.py'))
+boot = importlib.util.module_from_spec(boot_spec)
+boot_spec.loader.exec_module(boot)
+with patch.object(boot.ssl, 'create_default_context', return_value=SimpleNamespace(verify_mode=boot.ssl.CERT_NONE, check_hostname=False)):
+    try:
+        boot.verified_context()
+        raise AssertionError('Insecure SSL context accepted')
+    except RuntimeError:
+        pass
+for bad_url in ('http://files.pythonhosted.org/a.whl', 'https://example.com/a.whl', 'https://user:password@files.pythonhosted.org/a.whl'):
+    try:
+        boot.validate_source(bad_url)
+        raise AssertionError('Unofficial bootstrap source accepted')
+    except RuntimeError:
+        pass
+boot.validate_source(boot.UV_URL)
+with patch.object(boot.sys, 'prefix', 'not-the-project-venv'), contextlib.redirect_stdout(io.StringIO()):
+    assert boot.main() == 2
+class BadWheel(io.BytesIO):
+    def geturl(self): return boot.UV_URL
+with contextlib.ExitStack() as stack:
+    stack.enter_context(patch.object(boot.sys, 'prefix', str(source.parent / '.venv')))
+    stack.enter_context(patch.object(boot.sys, 'base_prefix', 'different-base'))
+    stack.enter_context(patch.object(boot.sys, 'platform', 'win32'))
+    stack.enter_context(patch.object(boot.platform, 'machine', return_value='AMD64'))
+    stack.enter_context(patch.object(boot.importlib.metadata, 'version', side_effect=boot.importlib.metadata.PackageNotFoundError('uv')))
+    stack.enter_context(patch.object(boot.urllib.request, 'urlopen', return_value=BadWheel(b'wrong wheel contents')))
+    stack.enter_context(patch.object(boot, 'verified_context', return_value=object()))
+    run = stack.enter_context(patch.object(boot.subprocess, 'run'))
+    stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
+    assert boot.main() == 2
+    run.assert_not_called()
+checks.append('uv bootstrap rejects insecure TLS, unofficial URLs, wrong environment and a mismatched wheel hash before installation')
 print(json.dumps({'status': 'PASS', 'stress_workers_executed': 0, 'checks': checks}, indent=2))

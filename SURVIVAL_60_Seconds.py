@@ -526,7 +526,7 @@ def write_html_report(out_dir: Path, summary: dict[str, object], samples: list[d
 *{{box-sizing:border-box}}body{{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,Segoe UI,sans-serif}}
 main{{max-width:1200px;margin:auto;padding:28px}}header,.chart,.panel{{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}}
 header{{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center}}h1{{margin:0 0 4px;font-size:28px}}h2{{margin:0 0 12px;font-size:17px}}p{{margin:5px 0;color:var(--muted)}}
-.score{{font-size:52px;font-weight:800;color:var(--accent);text-align:center}}.score small{{font-size:18px;color:var(--muted)}}
+.score{{font-size:52px;font-weight:800;color:var(--accent);text-align:center}}.score small{{font-size:18px;color:var(--muted)}}.score p{{font-size:14px;font-weight:500;max-width:260px}}
 .cards{{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}}.card{{background:#101828;color:white;border-radius:12px;padding:16px}}.card span{{display:block;color:#98a2b3;font-size:12px}}.card strong{{font-size:18px}}
 .grid2{{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}}svg{{width:100%;height:auto}}svg text{{font-size:11px;fill:#667085}}.grid{{stroke:#e4e7ec;stroke-width:1}}.legend{{display:flex;gap:18px;margin-bottom:4px;color:var(--muted);font-size:12px}}.legend b{{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}}
 .score-row{{display:grid;grid-template-columns:80px 1fr 72px;gap:10px;align-items:center;margin:10px 0}}.score-row div{{height:12px;background:#eaecf0;border-radius:8px;overflow:hidden}}.score-row i{{display:block;height:100%;background:#2563eb}}ul{{margin:4px 0;padding-left:20px}}

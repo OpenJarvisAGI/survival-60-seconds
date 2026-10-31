@@ -9,9 +9,9 @@ echo.
 echo This installs pinned dependencies in this folder's isolated .venv.
 echo The CUDA-enabled download is large. Setup does not run a stress test.
 echo.
-py -3.14 -c "import platform,sys; sys.exit(0 if platform.architecture()[0]=='64bit' else 2)" >nul 2>&1
+py -3.14 -c "import platform,sys; sys.exit(0 if platform.architecture()[0]=='64bit' and platform.machine().lower() in ('amd64','x86_64') else 2)" >nul 2>&1
 if errorlevel 1 (
-  echo Install 64-bit Python 3.14 with the Python launcher, then run setup again.
+  echo Install Windows x64 Python 3.14 with the Python launcher, then run setup again.
   echo Official download: https://www.python.org/downloads/windows/
   pause
   exit /b 2
@@ -26,10 +26,22 @@ if errorlevel 1 (
   pause
   exit /b 2
 )
-".venv\Scripts\python.exe" -m pip install --index-url https://pypi.org/simple -r requirements.txt
+".venv\Scripts\python.exe" -m pip install --disable-pip-version-check --timeout 10 --retries 0 --index-url https://pypi.org/simple -r requirements.txt
+if errorlevel 1 goto uvfallback
+".venv\Scripts\python.exe" -m pip install --disable-pip-version-check --timeout 10 --retries 0 -r requirements-cuda.txt
+if errorlevel 1 goto uvfallback
+goto verify
+:uvfallback
+echo.
+echo Standard pip could not complete. Trying the pinned uv compatibility installer.
+echo HTTPS certificate verification stays enabled. No global software is changed.
+".venv\Scripts\python.exe" bootstrap_uv.py
 if errorlevel 1 goto failed
-".venv\Scripts\python.exe" -m pip install -r requirements-cuda.txt
+".venv\Scripts\uv.exe" pip install --python ".venv\Scripts\python.exe" --system-certs --no-config --no-python-downloads --index-url https://pypi.org/simple -r requirements.txt
 if errorlevel 1 goto failed
+".venv\Scripts\uv.exe" pip install --python ".venv\Scripts\python.exe" --system-certs --no-config --no-python-downloads -r requirements-cuda.txt
+if errorlevel 1 goto failed
+:verify
 ".venv\Scripts\python.exe" verify_runtime.py
 if errorlevel 1 goto failed
 echo.
